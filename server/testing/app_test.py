@@ -6,15 +6,30 @@ from models import db, Message
 class TestApp:
     '''Flask application in app.py'''
 
-    with app.app_context():
-        m = Message.query.filter(
-            Message.body == "Hello 👋"
+    def setup_method(self):
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+            message = Message(
+                body="Hello, test world!",
+                username="TestUser",
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            db.session.add(message)
+            db.session.commit()
+
+            # Clean up any "Hello 👋" messages from "Liza"
+            m = Message.query.filter(
+                Message.body == "Hello 👋"
             ).filter(Message.username == "Liza")
 
-        for message in m:
-            db.session.delete(message)
+            for message in m:
+                db.session.delete(message)
 
-        db.session.commit()
+            db.session.commit()
 
     def test_has_correct_columns(self):
         with app.app_context():
